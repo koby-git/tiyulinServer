@@ -11,12 +11,8 @@ const { check, validationResult } = require('express-validator');
 router.get('/', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    console.log('user');
-    console.log(req.user.id);
-    console.log(user);
     res.json(user);
   } catch (err) {
-    console.log(err);
     res.status(500).send('Server error');
   }
 });
@@ -24,11 +20,8 @@ router.get('/', auth, async (req, res) => {
 router.post(
   '/',
   [
-    check('email', 'Please include a valid email').isEmail(),
-    check(
-      'password',
-      'Please enter a password with 6 or more characters'
-    ).exists(),
+    check('email', 'נא הזן כתובת מייל חוקית').isEmail(),
+    check('password', 'נא להזין סיסמא').notEmpty(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -42,9 +35,7 @@ router.post(
       let user = await User.findOne({ email });
 
       if (!user) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: 'Invalide Cradenetial' }] });
+        return res.status(400).json({ errors: [{ msg: 'פרטים לא חוקיים' }] });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);

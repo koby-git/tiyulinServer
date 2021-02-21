@@ -14,29 +14,8 @@ const Grid = require('gridfs-stream');
 var fs = require('fs');
 const crypto = require('crypto');
 var path = require('path');
-
 const aws = require('aws-sdk');
-
-const mongoURI =
-  'mongodb+srv://koby:ko121212@cluster0.c5kl9.mongodb.net/<dbname>?retryWrites=true&w=majority';
-
 const { check, validationResult } = require('express-validator');
-
-//Added section
-// var storage = multer({
-
-//   destination: (req, file, cb) => {
-//     cb(null, 'uploads');
-//   },
-//   filename: (req, file, cb) => {
-//     cb(
-//       null,
-//       file.fieldname + '-' + Date.now() + path.extname(file.originalname)
-//     );
-//   },
-// });
-
-// var upload = multer({ storage });
 
 aws.config.update({
   secretAccessKey: process.env.AWS_SECRET_KEY,
@@ -63,13 +42,14 @@ var upload = multer({
   }),
 });
 
-// const singleUpload = ;
-
+//POST post
 router.post(
   '/',
   upload.single('image'),
   auth,
-  // check('title', 'Title is required').not().isEmpty(),
+  check('title', 'נא הזן כותרת').notEmpty(),
+  // check('direction', 'נא הזן דרכח הגעה').notEmpty(),
+  // check('waze', 'נא הזן כתובת וויז').notEmpty(),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -79,12 +59,13 @@ router.post(
     try {
       const user = await User.findById(req.user.id).select('-password');
 
-      console.log('-----------------');
       const newPost = new Post({
         title: req.body.title,
-        // name: user.name,
-        // avatar: user.avatar,
+        name: user.name,
+        avatar: user.avatar,
         user: req.user.id,
+        direction: req.body.direction,
+        location: req.body.coords,
         img: req.file.location,
       });
 
@@ -97,19 +78,21 @@ router.post(
   }
 );
 
+//PUT like
 router.put('/like/:id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
 
     // Check if the post has already been liked
-    if (post.likes.some((like) => like.user.toString() === req.user.id)) {
-      return res.status(400).json({ msg: 'Post already liked' });
+    if (post.likes.some((like) => like.user.toString() == req.user.id)) {
+      post.likes = post.likes.filter(
+        ({ user }) => user.toString() !== req.user.id
+      );
+    } else {
+      post.likes.unshift({ user: req.user.id });
     }
 
-    post.likes.unshift({ user: req.user.id });
-
     await post.save();
-
     return res.json(post.likes);
   } catch (err) {
     console.error(err.message);
@@ -117,6 +100,7 @@ router.put('/like/:id', auth, async (req, res) => {
   }
 });
 
+//PUT unlike
 router.put('/unlike/:id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -140,7 +124,8 @@ router.put('/unlike/:id', auth, async (req, res) => {
   }
 });
 
-router.post(
+//POST comment
+router.put(
   '/comment/:id',
   auth,
   check('text', 'Text is required').notEmpty(),
@@ -165,7 +150,8 @@ router.post(
 
       await post.save();
 
-      res.json(post.comments);
+      // res.json(post.comments);
+      res.json(post);
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
@@ -173,6 +159,7 @@ router.post(
   }
 );
 
+//DELETE comment
 router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -202,11 +189,16 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
     return res.status(500).send('Server Error');
   }
 });
+
+//GET POSTS
 router.get('/', auth, async (req, res) => {
   try {
-    const posts = await Post.find({
-      user: req.user.id,
-    });
+    const page = parseInt(req.query.pageNumber); // Make sure to parse the page to number
+    const PAGE_SIZE = 20; // Similar to 'limit'
+    const skip = (page - 1) * PAGE_SIZE; // For page 1, the skip is: (1 - 1) * 20 => 0 * 20 = 0
+    const posts = await Post.find()
+      .skip(skip) // Same as before, always use 'skip' first
+      .limit(PAGE_SIZE);
 
     if (!posts) {
       return res.status(400).json({ msg: 'There is no post' });
@@ -219,6 +211,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+//GET post
 router.get('/:post_id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.post_id).populate('user', [
@@ -238,6 +231,7 @@ router.get('/:post_id', auth, async (req, res) => {
   }
 });
 
+//DELETE post
 router.delete('/:id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);

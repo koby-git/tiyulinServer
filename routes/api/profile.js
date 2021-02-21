@@ -6,6 +6,36 @@ const User = require('../../models/User');
 const Post = require('../../models/Post');
 const { check, validationResult } = require('express-validator');
 const config = require('config');
+const multerS3 = require('multer-s3');
+const dotenv = require('dotenv');
+const aws = require('aws-sdk');
+var path = require('path');
+const multer = require('multer');
+
+aws.config.update({
+  secretAccessKey: process.env.AWS_SECRET_KEY,
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  region: 'ap-south-1',
+});
+
+const s3 = new aws.S3({});
+
+var upload = multer({
+  storage: multerS3({
+    s3: s3,
+    acl: 'public-read',
+    bucket: 'tiyulim-bucket',
+    // metadata: function (req, file, cb) {
+    //   cb(null, {
+    //     fieldName:
+    //       file.fieldname + Date.now() + path.extname(file.originalname),
+    //   });
+    // },
+    key: function (req, file, cb) {
+      cb(null, Date.now().toString());
+    },
+  }),
+});
 
 router.get('/me', auth, async (req, res) => {
   try {
@@ -98,6 +128,42 @@ router.post(
     if (twitter) profileFields.social.twitter = twitter;
     if (instagram) profileFields.social.instagram = instagram;
     if (linkedin) profileFields.social.linkedin = linkedin;
+
+    try {
+      let profile = await Profile.findOne({ user: req.user.id });
+
+      if (profile) {
+        profile = await Profile.findOneAndUpdate(
+          { user: req.user.id },
+          { $set: profileFields },
+          { new: true }
+        );
+
+        return res.json(profile);
+      }
+
+      profile = new Profile(profileFields);
+      await profile.save();
+      res.json(profile);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+    }
+  }
+);
+
+//UPDATE AVATAR
+router.post(
+  '/user/avatar/:id',
+  auth,
+  upload.single('image'),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { company, website, location } = req.body;
 
     try {
       let profile = await Profile.findOne({ user: req.user.id });
