@@ -43,10 +43,11 @@ const PostSchema = new Schema({
     type: String,
     required: true,
   },
-  location: {
-    longitude: String,
-    latitude: String,
-  },
+
+  tags: [{ type: String }],
+  longitude: { type: String },
+  latitude: { type: String },
+
   waze: {
     type: String,
   },

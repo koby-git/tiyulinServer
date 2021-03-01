@@ -15,7 +15,7 @@ var fs = require('fs');
 const crypto = require('crypto');
 var path = require('path');
 const aws = require('aws-sdk');
-const { check, validationResult } = require('express-validator');
+const { check, validationResult, body } = require('express-validator');
 
 aws.config.update({
   secretAccessKey: process.env.AWS_SECRET_KEY,
@@ -48,8 +48,10 @@ router.post(
   upload.single('image'),
   auth,
   check('title', 'נא הזן כותרת').notEmpty(),
-  // check('direction', 'נא הזן דרכח הגעה').notEmpty(),
-  // check('waze', 'נא הזן כתובת וויז').notEmpty(),
+  check('direction', 'נא הזן דרכח הגעה').notEmpty(),
+  check('longitude', 'נא הזן כתובת מיקום').notEmpty(),
+  check('latitude', 'נא הזן כתובת מיקום').notEmpty(),
+
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -65,13 +67,16 @@ router.post(
         avatar: user.avatar,
         user: req.user.id,
         direction: req.body.direction,
-        location: req.body.coords,
+        longitude: req.body.longitude,
+        latitude: req.body.latitude,
         img: req.file.location,
+        tags: JSON.parse(req.body.tags),
       });
 
       const post = await newPost.save();
       res.json(post);
     } catch (err) {
+      console.log('ppppppppp');
       console.error(err.message);
       res.status(500).send('Server error');
     }
@@ -150,8 +155,7 @@ router.put(
 
       await post.save();
 
-      // res.json(post.comments);
-      res.json(post);
+      res.json(post.comments);
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
@@ -194,9 +198,10 @@ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
 router.get('/', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.pageNumber); // Make sure to parse the page to number
-    const PAGE_SIZE = 20; // Similar to 'limit'
+    const PAGE_SIZE = 100; // Similar to 'limit'
     const skip = (page - 1) * PAGE_SIZE; // For page 1, the skip is: (1 - 1) * 20 => 0 * 20 = 0
     const posts = await Post.find()
+      .sort({ date: 'desc' })
       .skip(skip) // Same as before, always use 'skip' first
       .limit(PAGE_SIZE);
 

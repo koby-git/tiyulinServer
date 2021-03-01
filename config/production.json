@@ -1,0 +1,8 @@
+{
+    "mongoURI" : "mongodb+srv://koby:ko121212@cluster0.c5kl9.mongodb.net/<dbname>?retryWrites=true&w=majority",
+    "jwtSecret" : "mysercrettoken",  
+    "githubClientId" : "10cfb9398ad74992edd1",
+    "githubSecret" : "486c8c7c9ac86e3fc6d02037363f902ca59e8053",
+    "awsAccessId":"AKIAIR62T2MRTYEMBF6Q",
+    "awsSecret":"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"
+}
