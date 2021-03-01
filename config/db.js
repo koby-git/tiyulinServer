@@ -9,14 +9,6 @@ const connectDB = async () => {
       useUnifiedTopology: true,
     });
 
-    // let gfs;
-
-    // conn.once('open', () => {
-    // Init stream
-    // gfs = Grid(conn.db, mongoose.mongo);
-    // gfs.collection('uploads');
-    // });
-
     console.log('MongoDB Connected..');
   } catch (err) {
     console.error(err.message);
