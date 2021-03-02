@@ -53,7 +53,7 @@ router.post(
 
       jtw.sign(
         payload,
-        config.get('jwtSecret'),
+        process.env.JWT_SECRET,
         {
           //3600 recomnede
           //this is for test

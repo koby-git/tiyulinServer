@@ -12,7 +12,7 @@ connectDB();
 
 //Init Middleware
 app.use(express.json({ extended: false }));
-
+app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 

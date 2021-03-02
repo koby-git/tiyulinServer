@@ -17,19 +17,23 @@ var path = require('path');
 const aws = require('aws-sdk');
 const { check, validationResult, body } = require('express-validator');
 
-aws.config.update({
-  secretAccessKey: process.env.AWS_SECRET_KEY,
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  region: 'ap-south-1',
+// aws.config.update({
+  // secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  // accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//   region: 'ap-south-1',
+// });
+
+const spacesEndpoint = new aws.Endpoint('sfo3.digitaloceanspaces.com');
+const s3 = new aws.S3({
+  endpoint: spacesEndpoint,
 });
-
-const s3 = new aws.S3({});
-
 var upload = multer({
   storage: multerS3({
     s3: s3,
     acl: 'public-read',
-    bucket: 'tiyulim-bucket',
+    bucket: 'tiyulin-server',
+    accessKeyId: process.env.SPACES_KEY,
+    secretAccessKey: process.env.SPACES_SECRET
     // metadata: function (req, file, cb) {
     //   cb(null, {
     //     fieldName:
