@@ -18,8 +18,8 @@ const aws = require('aws-sdk');
 const { check, validationResult, body } = require('express-validator');
 
 // aws.config.update({
-  // secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  // accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+// secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+// accessKeyId: process.env.AWS_ACCESS_KEY_ID,
 //   region: 'ap-south-1',
 // });
 
@@ -32,8 +32,6 @@ var upload = multer({
     s3: s3,
     acl: 'public-read',
     bucket: 'tiyulin-server',
-    accessKeyId: process.env.SPACES_KEY,
-    secretAccessKey: process.env.SPACES_SECRET
     // metadata: function (req, file, cb) {
     //   cb(null, {
     //     fieldName:
