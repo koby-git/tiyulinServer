@@ -26,7 +26,10 @@ const { check, validationResult, body } = require('express-validator');
 const spacesEndpoint = new aws.Endpoint('sfo3.digitaloceanspaces.com');
 const s3 = new aws.S3({
   endpoint: spacesEndpoint,
+  accessKeyId: process.env.ACCESS_KEY,
+  secretAccessKey: process.env.SECRET_KEY,
 });
+console.log(process.env.ACCESS_KEY);
 var upload = multer({
   storage: multerS3({
     s3: s3,
