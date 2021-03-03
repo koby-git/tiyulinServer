@@ -34,7 +34,7 @@ var upload = multer({
     //   });
     // },
     key: function (req, file, cb) {
-      cb(null, Date.now().toString());
+      cb(null, file.fieldname + Date.now() + path.extname(file.originalname));
     },
   }),
 });
@@ -131,7 +131,7 @@ router.post(
         {
           //3600 recomnede
           //this is for test
-          expiresIn: 3600000,
+          expiresIn: 3600,
         },
         (err, token) => {
           if (err) throw err;

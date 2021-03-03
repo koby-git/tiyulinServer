@@ -42,7 +42,7 @@ var upload = multer({
     //   });
     // },
     key: function (req, file, cb) {
-      cb(null, Date.now().toString());
+      cb(null, file.fieldname + Date.now() + path.extname(file.originalname));
     },
   }),
 });
